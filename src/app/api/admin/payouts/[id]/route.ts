@@ -20,7 +20,8 @@ const holdSchema = z.object({
 
 const schema = z.union([markPaidSchema, holdSchema]);
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await requireAdminSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -28,12 +29,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const parsed = schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid payload", issues: parsed.error.flatten() }, { status: 400 });
 
-  const payout = await prisma.affiliatePayout.findUnique({ where: { id: params.id }, include: { affiliate: true } });
+  const payout = await prisma.affiliatePayout.findUnique({ where: { id }, include: { affiliate: true } });
   if (!payout) return NextResponse.json({ error: "Payout not found" }, { status: 404 });
 
   if (parsed.data.action === "mark_paid") {
-    // Require the admin to explicitly re-confirm the exact Cash App handle
-    // being paid — the Cash App payment-safety check from the spec.
     if (parsed.data.confirmedCashAppHandle.trim() !== (payout.affiliate.cashAppHandle || "").trim()) {
       return NextResponse.json(
         { error: "The confirmed Cash App handle doesn't match the handle on file. Double-check before marking this paid." },
@@ -41,7 +40,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       );
     }
     try {
-      await markPayoutPaid(params.id, session.user.id, {
+      await markPayoutPaid(id, session.user.id, {
         paymentDate: new Date(parsed.data.paymentDate),
         paymentReference: parsed.data.paymentReference,
         adminNotes: parsed.data.adminNotes,
@@ -53,7 +52,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   if (parsed.data.action === "on_hold") {
-    await prisma.affiliatePayout.update({ where: { id: params.id }, data: { status: "on_hold" } });
+    await prisma.affiliatePayout.update({ where: { id }, data: { status: "on_hold" } });
     await logAuditEvent({
       adminId: session.user.id,
       affiliateId: payout.affiliateId,

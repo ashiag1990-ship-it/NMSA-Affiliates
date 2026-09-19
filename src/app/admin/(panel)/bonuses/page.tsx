@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { getDictionary } from "@/i18n/dictionaries";
 
 export default async function AdminBonusesPage() {
-  const { dict } = getDictionary();
+  const { dict } = await getDictionary();
   const c = dict.admin.bonuses;
 
   const bonuses = await prisma.affiliateBonus.findMany({

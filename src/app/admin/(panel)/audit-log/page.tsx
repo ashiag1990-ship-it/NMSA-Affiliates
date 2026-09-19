@@ -5,8 +5,13 @@ import { Card } from "@/components/ui/Card";
 import { Table, Th, Td } from "@/components/ui/Table";
 import { getDictionary } from "@/i18n/dictionaries";
 
-export default async function AdminAuditLogPage({ searchParams }: { searchParams: { action?: string; q?: string } }) {
-  const { dict } = getDictionary();
+export default async function AdminAuditLogPage({
+  searchParams: searchParamsPromise,
+}: {
+  searchParams: Promise<{ action?: string; q?: string }>;
+}) {
+  const searchParams = await searchParamsPromise;
+  const { dict } = await getDictionary();
   const c = dict.admin.auditLog;
 
   const where: any = {};

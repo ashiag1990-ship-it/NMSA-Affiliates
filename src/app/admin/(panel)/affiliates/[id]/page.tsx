@@ -10,12 +10,13 @@ import { AffiliateActions } from "@/components/admin/AffiliateActions";
 import { getDictionary } from "@/i18n/dictionaries";
 import { interpolate } from "@/i18n/interpolate";
 
-export default async function AdminAffiliateDetailPage({ params }: { params: { id: string } }) {
-  const { dict } = getDictionary();
+export default async function AdminAffiliateDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const { dict } = await getDictionary();
   const c = dict.admin.affiliates.detail;
 
   const affiliate = await prisma.affiliate.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       profile: true,
       training: true,

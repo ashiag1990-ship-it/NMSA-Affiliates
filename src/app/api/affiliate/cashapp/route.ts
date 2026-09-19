@@ -16,32 +16,41 @@ export async function POST(req: NextRequest) {
   }
 
   const newHandle = parsed.data.cashAppHandle.trim();
-  const affiliate = await prisma.affiliate.findUniqueOrThrow({ where: { id: session.user.id } });
 
-  await prisma.$transaction([
-    prisma.affiliate.update({
-      where: { id: session.user.id },
-      data: { cashAppHandle: newHandle, cashAppHandleUpdatedAt: new Date(), cashAppConfirmedAt: new Date() },
-    }),
-    prisma.affiliateCashAppHistory.create({
-      data: {
-        affiliateId: session.user.id,
-        oldHandle: affiliate.cashAppHandle,
-        newHandle,
-      },
-    }),
-  ]);
+  try {
+    const affiliate = await prisma.affiliate.findUniqueOrThrow({ where: { id: session.user.id } });
 
-  await logAuditEvent({
-    affiliateId: session.user.id,
-    action: "cash_app_updated",
-    previousValue: { cashAppHandle: affiliate.cashAppHandle },
-    newValue: { cashAppHandle: newHandle },
-  });
+    await prisma.$transaction([
+      prisma.affiliate.update({
+        where: { id: session.user.id },
+        data: { cashAppHandle: newHandle, cashAppHandleUpdatedAt: new Date(), cashAppConfirmedAt: new Date() },
+      }),
+      prisma.affiliateCashAppHistory.create({
+        data: {
+          affiliateId: session.user.id,
+          oldHandle: affiliate.cashAppHandle,
+          newHandle,
+        },
+      }),
+    ]);
 
-  const { dict } = getDictionary();
-  return NextResponse.json({
-    ok: true,
-    message: dict.profile.successMessage,
-  });
+    await logAuditEvent({
+      affiliateId: session.user.id,
+      action: "cash_app_updated",
+      previousValue: { cashAppHandle: affiliate.cashAppHandle },
+      newValue: { cashAppHandle: newHandle },
+    });
+
+    const { dict } = await getDictionary();
+    return NextResponse.json({
+      ok: true,
+      message: dict.profile.successMessage,
+    });
+  } catch (err) {
+    console.error("cash app update failed", err);
+    return NextResponse.json(
+      { error: "We couldn't update your Cash App handle just now. Please try again in a moment." },
+      { status: 500 }
+    );
+  }
 }

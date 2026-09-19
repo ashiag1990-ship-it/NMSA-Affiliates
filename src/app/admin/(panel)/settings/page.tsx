@@ -17,7 +17,7 @@ import {
 } from "./actions";
 
 export default async function AdminSettingsPage() {
-  const { dict } = getDictionary();
+  const { dict } = await getDictionary();
   const c = dict.admin.settings;
 
   const [settings, rules, tiers, bonusRules, educatorRates] = await Promise.all([

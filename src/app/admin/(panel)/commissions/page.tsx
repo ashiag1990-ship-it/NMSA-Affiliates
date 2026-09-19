@@ -7,8 +7,13 @@ import { Badge } from "@/components/ui/Badge";
 import { CommissionActions } from "@/components/admin/CommissionActions";
 import { getDictionary } from "@/i18n/dictionaries";
 
-export default async function AdminCommissionsPage({ searchParams }: { searchParams: { status?: string } }) {
-  const { dict } = getDictionary();
+export default async function AdminCommissionsPage({
+  searchParams: searchParamsPromise,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const searchParams = await searchParamsPromise;
+  const { dict } = await getDictionary();
   const c = dict.admin.commissions;
 
   const where: any = {};

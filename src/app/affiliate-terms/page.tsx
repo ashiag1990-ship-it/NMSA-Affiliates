@@ -3,8 +3,8 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export const metadata = { title: "NMSA Affiliate Program Terms" };
 
-export default function AffiliateTermsPage() {
-  const { dict } = getDictionary();
+export default async function AffiliateTermsPage() {
+  const { dict } = await getDictionary();
 
   return (
     <main className="min-h-screen py-12 px-4">

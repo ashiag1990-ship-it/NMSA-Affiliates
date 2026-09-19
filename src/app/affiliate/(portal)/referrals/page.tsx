@@ -1,6 +1,5 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card } from "@/components/ui/Card";
 import { Table, Th, Td } from "@/components/ui/Table";
@@ -14,14 +13,15 @@ const STATUS_OPTIONS = [
 ] as const;
 
 export default async function ReferralsPage({
-  searchParams,
+  searchParams: searchParamsPromise,
 }: {
-  searchParams: { status?: string; q?: string };
+  searchParams: Promise<{ status?: string; q?: string }>;
 }) {
-  const session = await getServerSession(authOptions);
+  const searchParams = await searchParamsPromise;
+  const session = await auth();
   if (!session || session.user.userType !== "affiliate") redirect("/affiliate/login");
 
-  const { dict } = getDictionary();
+  const { dict } = await getDictionary();
 
   const where: any = { affiliateId: session.user.id };
   if (searchParams.status) where.status = searchParams.status;

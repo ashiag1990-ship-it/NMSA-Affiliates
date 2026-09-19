@@ -1,7 +1,6 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { ReferralStatus } from "@prisma/client";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getAffiliateBalances } from "@/lib/payouts";
 import { getProgramSettings } from "@/lib/settings";
@@ -15,7 +14,7 @@ import { interpolate } from "@/i18n/interpolate";
 const COMPLETED_STATUSES: ReferralStatus[] = ["completed", "commission_pending", "commission_approved", "paid"];
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session || session.user.userType !== "affiliate") redirect("/affiliate/login");
   const affiliateId = session.user.id;
 
@@ -24,7 +23,7 @@ export default async function DashboardPage() {
     include: { tier: true },
   });
 
-  const { dict, locale } = getDictionary();
+  const { dict, locale } = await getDictionary();
 
   const [totalReferrals, completedReferrals, pendingReferrals, monthlyReferrals, balances, settings] =
     await Promise.all([
@@ -122,7 +121,7 @@ async function EducatorCreditsCard({ affiliateId }: { affiliateId: string }) {
   const entries = await prisma.educatorCreditLedgerEntry.findMany({ where: { affiliateId } });
   const earned = entries.reduce((s, e) => s + Number(e.amount), 0);
   const available = entries.filter((e) => e.status === "approved").reduce((s, e) => s + Number(e.amount), 0);
-  const { dict } = getDictionary();
+  const { dict } = await getDictionary();
 
   return (
     <Card>

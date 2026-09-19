@@ -17,8 +17,13 @@ const EMAIL_DICT_KEY = {
   training_reminder: "trainingReminder",
 } as const;
 
-export default async function AdminEmailCampaignsPage({ searchParams }: { searchParams: { type?: string } }) {
-  const { dict } = getDictionary();
+export default async function AdminEmailCampaignsPage({
+  searchParams: searchParamsPromise,
+}: {
+  searchParams: Promise<{ type?: string }>;
+}) {
+  const searchParams = await searchParamsPromise;
+  const { dict } = await getDictionary();
   const c = dict.admin.emailCampaigns;
 
   const CAMPAIGNS = CAMPAIGN_TYPES.map((type) => ({

@@ -8,8 +8,61 @@ import { PayoutActions } from "@/components/admin/PayoutActions";
 import { RunPayoutEligibilityButton } from "@/components/admin/RunPayoutEligibilityButton";
 import { getDictionary } from "@/i18n/dictionaries";
 
-export default async function AdminPayoutsPage({ searchParams }: { searchParams: { status?: string } }) {
-  const { dict } = getDictionary();
+export default async function AdminPayoutsPage({
+  searchParams: searchParamsPromise,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const searchParams = await searchParamsPromise;
+  const { dict } = await getDictionary();
+  const c = dict.admin.payouts;
+
+  const where: any = {};
+  if (searchParams.status) where.status = searchParams.status;
+
+  const payouts = await prisma.affiliatePayout.findMany({
+    where,
+    include: { affiliate: true },
+    orderBy: { createdAt: "desc" },
+    take: 200,
+  });
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-2xl font-extrabold text-nmsa-navy">{c.title}</h1>
+        <RunPayoutEligibilityButton />
+      </div>
+
+      <Card>
+        <CardHeader><CardTitle>{c.allPayouts}</CardTitle></CardHeader>
+        <form method="get" className="flex gap-3 mb-5">
+          <select name="status" defaultValue={searchParams.status || ""} className="focus-ring rounded-lg border border-gray-300 px-3.5 py-2.5 text-sm">
+            <option
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Applying Next.js 16 upgrade - part 3 of 4..."
+
+mkdir -p "$(dirname "src/app/admin/(panel)/payouts/page.tsx")"
+cat > "src/app/admin/(panel)/payouts/page.tsx" << 'NMSA_NEXT16_EOF'
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { formatDate, formatMoney } from "@/lib/utils";
+import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Table, Th, Td } from "@/components/ui/Table";
+import { Badge } from "@/components/ui/Badge";
+import { PayoutActions } from "@/components/admin/PayoutActions";
+import { RunPayoutEligibilityButton } from "@/components/admin/RunPayoutEligibilityButton";
+import { getDictionary } from "@/i18n/dictionaries";
+
+export default async function AdminPayoutsPage({
+  searchParams: searchParamsPromise,
+}: {
+  searchParams: Promise<{ status?: string }>;
+}) {
+  const searchParams = await searchParamsPromise;
+  const { dict } = await getDictionary();
   const c = dict.admin.payouts;
 
   const where: any = {};

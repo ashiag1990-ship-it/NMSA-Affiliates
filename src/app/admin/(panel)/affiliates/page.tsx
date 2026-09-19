@@ -9,11 +9,12 @@ import { Button } from "@/components/ui/Button";
 import { getDictionary } from "@/i18n/dictionaries";
 
 export default async function AdminAffiliatesPage({
-  searchParams,
+  searchParams: searchParamsPromise,
 }: {
-  searchParams: { status?: string; type?: string; q?: string };
+  searchParams: Promise<{ status?: string; type?: string; q?: string }>;
 }) {
-  const { dict } = getDictionary();
+  const searchParams = await searchParamsPromise;
+  const { dict } = await getDictionary();
   const c = dict.admin.affiliates;
 
   const where: any = {};

@@ -11,12 +11,13 @@ const patchSchema = z.object({
   suspendedReason: z.string().optional(),
 });
 
-export async function GET(_req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await requireAdminSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const affiliate = await prisma.affiliate.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       profile: true,
       training: true,
@@ -34,7 +35,8 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
   return NextResponse.json({ affiliate });
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await requireAdminSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -42,7 +44,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
 
-  const before = await prisma.affiliate.findUnique({ where: { id: params.id } });
+  const before = await prisma.affiliate.findUnique({ where: { id } });
   if (!before) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const data: Record<string, unknown> = { ...parsed.data };
@@ -53,7 +55,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     data.suspendedReason = null;
   }
 
-  const updated = await prisma.affiliate.update({ where: { id: params.id }, data });
+  const updated = await prisma.affiliate.update({ where: { id }, data });
 
   const action =
     parsed.data.status === "suspended"
@@ -68,7 +70,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   await logAuditEvent({
     adminId: session.user.id,
-    affiliateId: params.id,
+    affiliateId: id,
     action,
     previousValue: before,
     newValue: parsed.data,

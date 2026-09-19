@@ -1,6 +1,5 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { CashAppForm } from "@/components/affiliate/CashAppForm";
@@ -10,9 +9,9 @@ import { getDictionary } from "@/i18n/dictionaries";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default async function ProfilePage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session || session.user.userType !== "affiliate") redirect("/affiliate/login");
-  const { dict } = getDictionary();
+  const { dict } = await getDictionary();
 
   const affiliate = await prisma.affiliate.findUniqueOrThrow({
     where: { id: session.user.id },

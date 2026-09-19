@@ -1,6 +1,5 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getAffiliateBalances } from "@/lib/payouts";
 import { formatDate, formatMoney } from "@/lib/utils";
@@ -11,10 +10,10 @@ import { Badge } from "@/components/ui/Badge";
 import { getDictionary } from "@/i18n/dictionaries";
 
 export default async function EarningsPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session || session.user.userType !== "affiliate") redirect("/affiliate/login");
   const affiliateId = session.user.id;
-  const { dict } = getDictionary();
+  const { dict } = await getDictionary();
 
   const [balances, commissions] = await Promise.all([
     getAffiliateBalances(affiliateId),

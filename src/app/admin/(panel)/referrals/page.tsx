@@ -12,11 +12,12 @@ const STATUS_OPTIONS = [
 ] as const;
 
 export default async function AdminReferralsPage({
-  searchParams,
+  searchParams: searchParamsPromise,
 }: {
-  searchParams: { status?: string; q?: string; fraud?: string };
+  searchParams: Promise<{ status?: string; q?: string; fraud?: string }>;
 }) {
-  const { dict } = getDictionary();
+  const searchParams = await searchParamsPromise;
+  const { dict } = await getDictionary();
   const c = dict.admin.referrals;
 
   const where: any = {};

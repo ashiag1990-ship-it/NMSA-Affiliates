@@ -11,7 +11,7 @@ const COMPLETED_STATUSES: ReferralStatus[] = ["completed", "commission_pending",
 const PENDING_STATUSES: ReferralStatus[] = ["clicked", "registered", "enrolled", "payment_pending"];
 
 export default async function AdminOverviewPage() {
-  const { dict } = getDictionary();
+  const { dict } = await getDictionary();
   const c = dict.admin.overview;
 
   const [

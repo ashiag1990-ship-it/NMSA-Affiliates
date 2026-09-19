@@ -16,7 +16,8 @@ const schema = z.object({
   amount: z.number().optional(),
 });
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const session = await requireAdminSession();
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -27,21 +28,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   try {
     if (action === "approve") {
-      await manuallyApproveCommission(params.id, session.user.id);
+      await manuallyApproveCommission(id, session.user.id);
     } else if (action === "reject") {
       if (!reason) return NextResponse.json({ error: "A reason is required to reject a commission." }, { status: 400 });
-      await rejectCommission(params.id, session.user.id, reason);
+      await rejectCommission(id, session.user.id, reason);
     } else if (action === "reverse") {
       if (!reason) return NextResponse.json({ error: "A reason is required to reverse a commission." }, { status: 400 });
-      await reverseCommission(params.id, session.user.id, reason);
+      await reverseCommission(id, session.user.id, reason);
     } else if (action === "adjust") {
       if (amount == null || !reason) {
         return NextResponse.json({ error: "An amount and reason are required for a manual adjustment." }, { status: 400 });
       }
-      await adjustCommission(params.id, session.user.id, amount, reason);
+      await adjustCommission(id, session.user.id, amount, reason);
     }
 
-    const commission = await prisma.affiliateCommission.findUnique({ where: { id: params.id } });
+    const commission = await prisma.affiliateCommission.findUnique({ where: { id } });
     if (commission) await recalcAffiliateTier(commission.affiliateId);
 
     return NextResponse.json({ ok: true });

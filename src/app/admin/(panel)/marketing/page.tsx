@@ -8,7 +8,7 @@ import { getDictionary } from "@/i18n/dictionaries";
 const TYPES = ["overview", "marketing_post", "licensing_info", "social_graphic", "social_caption", "email_template", "approved_language", "faq"];
 
 export default async function AdminMarketingPage() {
-  const { dict } = getDictionary();
+  const { dict } = await getDictionary();
   const c = dict.admin.marketing;
 
   const resources = await prisma.affiliateMarketingResource.findMany({ orderBy: { sortOrder: "asc" } });

@@ -1,15 +1,14 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { CopyButton, ShareButton } from "@/components/affiliate/CopyButton";
 import { getDictionary } from "@/i18n/dictionaries";
 
 export default async function MarketingResourcesPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session || session.user.userType !== "affiliate") redirect("/affiliate/login");
-  const { dict } = getDictionary();
+  const { dict } = await getDictionary();
 
   const [resources, link] = await Promise.all([
     prisma.affiliateMarketingResource.findMany({ where: { active: true }, orderBy: { sortOrder: "asc" } }),
@@ -67,7 +66,7 @@ export default async function MarketingResourcesPage() {
                 )}
                 {bodyText && <CopyButton value={bodyText} label={dict.common.copyText} />}
                 {r.downloadUrl && (
-                  <a
+                  
                     href={r.downloadUrl}
                     download
                     className="rounded-xl border-2 border-nmsa-navy text-nmsa-navy px-3 py-1.5 text-sm font-bold hover:bg-nmsa-navy hover:text-white transition"

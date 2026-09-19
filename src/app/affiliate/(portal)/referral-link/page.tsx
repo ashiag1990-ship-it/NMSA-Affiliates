@@ -1,6 +1,5 @@
-import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { CopyButton, ShareButton } from "@/components/affiliate/CopyButton";
@@ -8,10 +7,10 @@ import { StatTile } from "@/components/ui/StatTile";
 import { getDictionary } from "@/i18n/dictionaries";
 
 export default async function ReferralLinkPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth();
   if (!session || session.user.userType !== "affiliate") redirect("/affiliate/login");
 
-  const { dict } = getDictionary();
+  const { dict } = await getDictionary();
 
   const training = await prisma.affiliateTraining.findUnique({ where: { affiliateId: session.user.id } });
   const link = await prisma.affiliateReferralLink.findFirst({
