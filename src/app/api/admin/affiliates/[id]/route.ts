@@ -48,7 +48,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const data: Record<string, unknown> = { ...parsed.data };
   if (parsed.data.status === "suspended") {
     data.suspendedAt = new Date();
-  } else if (parsed.data.status && parsed.data.status !== "suspended") {
+  } else if (parsed.data.status) {
     data.suspendedAt = null;
     data.suspendedReason = null;
   }
