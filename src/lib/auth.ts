@@ -4,6 +4,11 @@ import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 
 const authConfig: NextAuthConfig = {
+  // Required by Auth.js v5 when running behind a reverse proxy (Railway
+  // terminates TLS and forwards to the container) — v4 didn't need this.
+  // Safe here because NEXTAUTH_URL / the deployment domain is trusted and
+  // controlled by us, not user input.
+  trustHost: true,
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   pages: { signIn: "/affiliate/login", error: "/affiliate/login" },
   providers: [
