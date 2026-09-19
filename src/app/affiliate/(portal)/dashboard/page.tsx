@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import { ReferralStatus } from "@prisma/client";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getAffiliateBalances } from "@/lib/payouts";
@@ -11,7 +12,7 @@ import { Badge } from "@/components/ui/Badge";
 import { getDictionary } from "@/i18n/dictionaries";
 import { interpolate } from "@/i18n/interpolate";
 
-const COMPLETED_STATUSES = ["completed", "commission_pending", "commission_approved", "paid"];
+const COMPLETED_STATUSES: ReferralStatus[] = ["completed", "commission_pending", "commission_approved", "paid"];
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);

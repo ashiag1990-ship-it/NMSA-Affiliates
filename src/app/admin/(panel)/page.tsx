@@ -1,3 +1,4 @@
+import { ReferralStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { formatMoney } from "@/lib/utils";
 import { bucketByMonth, bucketSumByMonth } from "@/lib/analytics";
@@ -6,8 +7,8 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { AdminCharts } from "@/components/admin/AdminCharts";
 import { getDictionary } from "@/i18n/dictionaries";
 
-const COMPLETED_STATUSES = ["completed", "commission_pending", "commission_approved", "paid"];
-const PENDING_STATUSES = ["clicked", "registered", "enrolled", "payment_pending"];
+const COMPLETED_STATUSES: ReferralStatus[] = ["completed", "commission_pending", "commission_approved", "paid"];
+const PENDING_STATUSES: ReferralStatus[] = ["clicked", "registered", "enrolled", "payment_pending"];
 
 export default async function AdminOverviewPage() {
   const { dict } = getDictionary();

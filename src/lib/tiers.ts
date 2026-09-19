@@ -1,3 +1,4 @@
+import { ReferralStatus } from "@prisma/client";
 import { prisma } from "./prisma";
 import { logAuditEvent } from "./audit";
 
@@ -5,13 +6,13 @@ import { logAuditEvent } from "./audit";
 // actually completed (not merely clicked/registered) and it isn't flagged
 // fraudulent. Later stages (commission_pending/approved/paid) are included
 // because the purchase itself already completed by that point.
-const COMPLETED_STATUSES = ["completed", "commission_pending", "commission_approved", "paid"] as const;
+const COMPLETED_STATUSES: ReferralStatus[] = ["completed", "commission_pending", "commission_approved", "paid"];
 
 export async function countCompletedReferrals(affiliateId: string): Promise<number> {
   return prisma.affiliateReferral.count({
     where: {
       affiliateId,
-      status: { in: COMPLETED_STATUSES as unknown as string[] },
+      status: { in: COMPLETED_STATUSES },
       fraudFlag: false,
     },
   });
