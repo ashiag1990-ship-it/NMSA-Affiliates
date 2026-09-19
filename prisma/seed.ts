@@ -34,6 +34,15 @@ async function main() {
       },
     });
     console.log(`Created admin ${adminEmail} — CHANGE THIS PASSWORD after first login.`);
+  } else {
+    // Keep the seeded admin's password in sync with SEED_ADMIN_PASSWORD, so
+    // changing that variable and redeploying actually takes effect instead
+    // of silently being ignored because the admin row already exists.
+    await prisma.admin.update({
+      where: { id: existingAdmin.id },
+      data: { passwordHash: await bcrypt.hash(adminPassword, 12) },
+    });
+    console.log(`Synced admin ${adminEmail} password from SEED_ADMIN_PASSWORD.`);
   }
 
   // ---- Affiliate tiers ----
