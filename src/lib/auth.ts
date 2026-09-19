@@ -11,6 +11,15 @@ const authConfig: NextAuthConfig = {
   trustHost: true,
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   pages: { signIn: "/affiliate/login", error: "/affiliate/login" },
+  // Lets the session/CSRF cookies be sent when this app is loaded inside an
+  // <iframe> on a different domain (e.g. embedded on nationalmsa.org).
+  // Chrome/Firefox honor this; Safari blocks third-party cookies regardless
+  // of SameSite, so login inside the iframe still won't persist there.
+  cookies: {
+    sessionToken: { options: { sameSite: "none", secure: true } },
+    callbackUrl: { options: { sameSite: "none", secure: true } },
+    csrfToken: { options: { sameSite: "none", secure: true } },
+  },
   providers: [
     CredentialsProvider({
       id: "affiliate",
