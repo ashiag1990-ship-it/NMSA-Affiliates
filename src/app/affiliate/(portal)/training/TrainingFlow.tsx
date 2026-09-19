@@ -1,0 +1,216 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/Button";
+import { useTranslation } from "@/i18n/context";
+import type { Dictionary } from "@/i18n/dictionaries/en";
+
+export function TrainingFlow({ startSlide, alreadyCompleted }: { startSlide: number; alreadyCompleted: boolean }) {
+  const router = useRouter();
+  const { dict, t } = useTranslation();
+  const [slide, setSlide] = useState(Math.min(startSlide, 4));
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(alreadyCompleted);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!alreadyCompleted) {
+      fetch("/api/affiliate/training", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slide: 1, action: "start" }),
+      }).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function next() {
+    setSubmitting(true);
+    setError(null);
+    try {
+      if (slide < 4) {
+        await fetch("/api/affiliate/training", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slide, action: "complete_slide" }),
+        });
+        setSlide(slide + 1);
+      } else {
+        const res = await fetch("/api/affiliate/training", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ slide: 4, action: "finish" }),
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          setError(json.error || dict.common.somethingWentWrong);
+          setSubmitting(false);
+          return;
+        }
+        setDone(true);
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (done) {
+    return (
+      <div className="text-center py-10">
+        <div className="text-5xl mb-4">🎉</div>
+        <h1 className="text-3xl font-extrabold text-nmsa-navy">{dict.training.congratsTitle}</h1>
+        <p className="mt-3 text-nmsa-gray-dark max-w-md mx-auto">{dict.training.congratsBody}</p>
+        <Button className="mt-8" onClick={() => router.push("/affiliate/referral-link")}>
+          {dict.training.getReferralLink}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-8">
+        {[1, 2, 3, 4].map((n) => (
+          <div key={n} className={`h-1.5 flex-1 rounded-full ${n <= slide ? "bg-nmsa-gold" : "bg-gray-200"}`} />
+        ))}
+      </div>
+
+      {error && <div className="mb-6 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">{error}</div>}
+
+      {slide === 1 && <Slide1 dict={dict} />}
+      {slide === 2 && <Slide2 dict={dict} />}
+      {slide === 3 && <Slide3 dict={dict} />}
+      {slide === 4 && <Slide4 dict={dict} />}
+
+      <div className="mt-10 flex justify-between items-center">
+        <div className="text-xs text-nmsa-gray-dark">{t(dict.training.slideOf, { n: slide })}</div>
+        <Button onClick={next} disabled={submitting}>
+          {submitting ? dict.training.pleaseWait : slide < 4 ? dict.training.continue : dict.training.finishTraining}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function SlideShell({ eyebrow, title, children }: { eyebrow: string; title: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <div className="text-xs font-bold tracking-widest text-nmsa-gold bg-nmsa-navy inline-block px-3 py-1 rounded-full uppercase">
+        {eyebrow}
+      </div>
+      <h2 className="text-2xl sm:text-3xl font-extrabold text-nmsa-navy mt-4">{title}</h2>
+      <div className="mt-5 space-y-4 text-sm sm:text-base text-nmsa-navy/90 leading-relaxed">{children}</div>
+    </div>
+  );
+}
+
+function Slide1({ dict }: { dict: Dictionary }) {
+  const s = dict.training.slide1;
+  return (
+    <SlideShell eyebrow={s.eyebrow} title={s.title}>
+      <p>{s.body}</p>
+      <div className="rounded-xl bg-nmsa-navy/5 border border-nmsa-navy/10 p-5">
+        <p className="font-semibold text-nmsa-navy">{s.takeawayLabel}</p>
+        <p className="mt-1">{s.takeaway}</p>
+      </div>
+    </SlideShell>
+  );
+}
+
+function Slide2({ dict }: { dict: Dictionary }) {
+  const s = dict.training.slide2;
+  return (
+    <SlideShell eyebrow={s.eyebrow} title={s.title}>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+        {s.audiences.map((a) => (
+          <div key={a} className="rounded-lg bg-white border border-gray-200 px-3 py-2 text-sm">
+            {a}
+          </div>
+        ))}
+      </div>
+      <p className="font-semibold text-nmsa-navy mt-4">{s.questionsLabel}</p>
+      <ul className="list-disc list-inside space-y-1">
+        {s.questions.map((q) => (
+          <li key={q}>{q}</li>
+        ))}
+      </ul>
+      <div className="rounded-xl bg-amber-50 border border-amber-300 p-5 text-amber-900">
+        <p className="font-bold">{s.importantTitle}</p>
+        <p className="mt-1 text-sm">{s.important}</p>
+        <p className="mt-2 text-sm">{s.importantNote}</p>
+      </div>
+    </SlideShell>
+  );
+}
+
+function Slide3({ dict }: { dict: Dictionary }) {
+  const s = dict.training.slide3;
+  return (
+    <SlideShell eyebrow={s.eyebrow} title={s.title}>
+      <div className="space-y-4">
+        <div className="rounded-xl border border-gray-200 p-5">
+          <p className="font-bold text-nmsa-navy">{s.levelITitle}</p>
+          <p className="text-sm mt-1">{s.levelIBody}</p>
+          <div className="flex flex-wrap gap-1.5 mt-3">
+            {s.levelIServices.map((svc) => (
+              <span key={svc} className="text-xs bg-nmsa-navy/5 rounded-full px-2.5 py-1">
+                {svc}
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="rounded-xl border border-gray-200 p-5">
+          <p className="font-bold text-nmsa-navy">{s.levelIITitle}</p>
+          <p className="text-sm mt-1">{s.levelIIBody}</p>
+        </div>
+        <div className="rounded-xl border border-gray-200 p-5">
+          <p className="font-bold text-nmsa-navy">{s.levelIIITitle}</p>
+          <p className="text-sm mt-1">{s.levelIIIBody}</p>
+        </div>
+      </div>
+      <div className="rounded-xl bg-amber-50 border border-amber-300 p-5 text-amber-900">
+        <p className="font-bold">{s.neverTellTitle}</p>
+        <p className="mt-1 text-sm italic">{s.neverTellQuote}</p>
+        <p className="font-bold mt-3">{s.insteadTitle}</p>
+        <p className="mt-1 text-sm">{s.insteadQuote}</p>
+      </div>
+    </SlideShell>
+  );
+}
+
+function Slide4({ dict }: { dict: Dictionary }) {
+  const s = dict.training.slide4;
+  return (
+    <SlideShell eyebrow={s.eyebrow} title={s.title}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {s.steps.map((step) => (
+          <div key={step.n} className="rounded-xl border border-gray-200 p-4 flex gap-3">
+            <div className="w-8 h-8 rounded-full bg-nmsa-navy text-nmsa-gold font-bold flex items-center justify-center shrink-0">
+              {step.n}
+            </div>
+            <div>
+              <p className="font-bold text-nmsa-navy">{step.title}</p>
+              <p className="text-sm mt-0.5">{step.body}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="rounded-xl bg-nmsa-navy text-white p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <p className="text-xs text-nmsa-gold font-bold uppercase">{s.paymentMethodLabel}</p>
+          <p className="font-bold mt-1">{s.paymentMethod}</p>
+        </div>
+        <div>
+          <p className="text-xs text-nmsa-gold font-bold uppercase">{s.payoutScheduleLabel}</p>
+          <p className="font-bold mt-1">{s.payoutSchedule}</p>
+        </div>
+        <div>
+          <p className="text-xs text-nmsa-gold font-bold uppercase">{s.minimumPayoutLabel}</p>
+          <p className="font-bold mt-1">$200</p>
+        </div>
+      </div>
+      <p className="text-sm text-nmsa-gray-dark">{s.rollover}</p>
+    </SlideShell>
+  );
+}

@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: "Inter", system-ui, sans-serif;
+}
+
+html,
+body {
+  background-color: #f4f5f8;
+  color: #120670;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::selection {
+  background-color: #ffde00;
+  color: #120670;
+}
+
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 222, 0, 0.6), 0 0 0 5px #120670;
+}

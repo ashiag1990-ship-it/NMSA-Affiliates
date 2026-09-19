@@ -1,0 +1,668 @@
+// ============================================================================
+// NMSA AFFILIATE & REFERRAL PROGRAM — DATABASE SCHEMA
+// Standalone system. Does NOT touch NMSA's existing customer, educator,
+// practitioner, licensing, certification, enrollment, payment or credit
+// data — this schema only stores affiliate-program data and lightweight
+// pass-through references (customerId/orderId/etc.) to records that live
+// in the main NMSA system, to be connected later via a secure API.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// ENUMS
+// ----------------------------------------------------------------------------
+
+enum AffiliateType {
+  educator
+  practitioner
+  general
+}
+
+enum AffiliateStatus {
+  pending
+  active
+  suspended
+}
+
+enum AdminRole {
+  super_admin
+  admin
+}
+
+enum ReferralStatus {
+  clicked
+  registered
+  enrolled
+  payment_pending
+  completed
+  commission_pending
+  commission_approved
+  paid
+  cancelled
+  refunded
+}
+
+enum CommissionStatus {
+  pending // COMMISSION PENDING — created, still in holding period
+  approved // COMMISSION APPROVED — held period cleared, verified
+  available // AVAILABLE FOR PAYOUT
+  paid // PAID
+  rejected // admin rejected, never payable
+  reversed // previously approved/paid, reversed due to refund/chargeback
+}
+
+enum CommissionRuleType {
+  fixed
+  percentage
+  license_specific
+  annual
+  biennial
+  tier
+  bonus
+}
+
+enum LicenseLevel {
+  I
+  II
+  III
+}
+
+enum TermType {
+  annual
+  biennial
+}
+
+enum BonusStatus {
+  pending
+  awarded // earned, counts toward available balance, not yet paid out
+  paid
+  cancelled
+}
+
+enum PayoutStatus {
+  balance_owed
+  eligible
+  processing
+  paid
+  on_hold
+}
+
+enum EmailType {
+  new_referral
+  new_commission
+  payout_ready
+  payout_completed
+  below_minimum
+  training_reminder
+}
+
+enum EmailStatus {
+  stubbed // logged only, no live send configured
+  sent
+  failed
+}
+
+enum AdjustmentType {
+  manual
+  reversal
+  correction
+}
+
+enum MarketingResourceType {
+  overview
+  marketing_post
+  licensing_info
+  social_graphic
+  social_caption
+  email_template
+  approved_language
+  faq
+}
+
+enum Locale {
+  en
+  es
+}
+
+// ----------------------------------------------------------------------------
+// ADMIN
+// ----------------------------------------------------------------------------
+
+model Admin {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         AdminRole @default(admin)
+  locale       Locale    @default(en)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  commissionAdjustments AffiliateCommissionAdjustment[]
+  payoutsCreated        AffiliatePayout[]
+  auditLogs             AffiliateAuditLog[]
+
+  @@map("admins")
+}
+
+// ----------------------------------------------------------------------------
+// AFFILIATE CORE ACCOUNT
+// ----------------------------------------------------------------------------
+
+model Affiliate {
+  id            String          @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String          @unique
+  phone         String
+  passwordHash  String
+  affiliateType AffiliateType   @default(general)
+  status        AffiliateStatus @default(pending)
+  locale        Locale          @default(en)
+
+  tierId String?
+  tier   AffiliateTier? @relation(fields: [tierId], references: [id])
+
+  // Cash App payout info
+  cashAppHandle          String?
+  cashAppHandleUpdatedAt DateTime?
+  cashAppConfirmedAt     DateTime?
+
+  suspendedAt     DateTime?
+  suspendedReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile           AffiliateProfile?
+  training          AffiliateTraining?
+  referralLinks     AffiliateReferralLink[]
+  referrals         AffiliateReferral[]
+  clicks            AffiliateClick[]
+  commissions       AffiliateCommission[]
+  bonuses           AffiliateBonus[]
+  payouts           AffiliatePayout[]
+  emailEvents       AffiliateEmailEvent[]
+  termsAcceptances  AffiliateTermsAcceptance[]
+  cashAppHistory    AffiliateCashAppHistory[]
+  auditLogsAbout    AffiliateAuditLog[]        @relation("AuditAffiliate")
+  educatorCredits   EducatorCreditLedgerEntry[]
+
+  @@index([affiliateType])
+  @@index([status])
+  @@map("affiliates")
+}
+
+model AffiliateProfile {
+  id                String   @id @default(cuid())
+  affiliateId       String   @unique
+  affiliate         Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  businessName      String?
+  website           String?
+  instagram         String?
+  facebook          String?
+  tiktok            String?
+  marketingChannels String[] // Social Media, Professional Network, Students, Colleagues, Email, Website, Word of Mouth, Other
+  marketingChannelOther String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("affiliate_profiles")
+}
+
+// ----------------------------------------------------------------------------
+// TRAINING
+// ----------------------------------------------------------------------------
+
+model AffiliateTraining {
+  id          String    @id @default(cuid())
+  affiliateId String    @unique
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  trainingStarted     Boolean   @default(false)
+  trainingStartedAt   DateTime?
+  currentSlide        Int       @default(1)
+  slidesCompleted      Int[]     @default([])
+  trainingCompleted   Boolean   @default(false)
+  trainingCompletedAt DateTime?
+  trainingVersion     String    @default("1.0")
+
+  trainingReminderSentAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("affiliate_training")
+}
+
+// ----------------------------------------------------------------------------
+// REFERRAL LINKS, CLICKS, REFERRALS
+// ----------------------------------------------------------------------------
+
+model AffiliateReferralLink {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  code      String   @unique
+  url       String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  clicks    AffiliateClick[]
+  referrals AffiliateReferral[]
+
+  @@map("affiliate_referral_links")
+}
+
+model AffiliateClick {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  referralLinkId String?
+  referralLink   AffiliateReferralLink? @relation(fields: [referralLinkId], references: [id])
+
+  referralCode String
+  cookieId     String   @unique
+  ipHash       String?
+  userAgent    String?
+  landingUrl   String?
+  clickedAt    DateTime @default(now())
+
+  referral AffiliateReferral?
+
+  @@index([affiliateId])
+  @@index([referralCode])
+  @@map("affiliate_clicks")
+}
+
+model AffiliateReferral {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+
+  referralLinkId String?
+  referralLink   AffiliateReferralLink? @relation(fields: [referralLinkId], references: [id])
+
+  clickId String?     @unique
+  click   AffiliateClick? @relation(fields: [clickId], references: [id])
+
+  referralCode   String
+  referralSource String? // marketing channel / utm
+
+  // Pass-through references to records in the main NMSA system (not duplicated here)
+  customerId   String?
+  customerName String?
+  customerEmail String?
+  enrollmentId String?
+  orderId      String?
+  purchaseId   String?
+
+  productLabel   String? // e.g. "Level III Injectable Certification"
+  licenseLevel   LicenseLevel?
+  termType       TermType?
+  purchaseAmount Decimal? @db.Decimal(10, 2)
+
+  status ReferralStatus @default(clicked)
+
+  clickTimestamp        DateTime?
+  registrationTimestamp DateTime?
+  enrollmentTimestamp   DateTime?
+  purchaseTimestamp     DateTime?
+
+  fraudFlag   Boolean @default(false)
+  fraudReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  commissions     AffiliateCommission[]
+  educatorCredits EducatorCreditLedgerEntry[]
+
+  @@unique([affiliateId, orderId])
+  @@index([status])
+  @@index([affiliateId])
+  @@map("affiliate_referrals")
+}
+
+// ----------------------------------------------------------------------------
+// COMMISSION ENGINE (admin-configurable — never hard-coded in the frontend)
+// ----------------------------------------------------------------------------
+
+model CommissionRule {
+  id   String              @id @default(cuid())
+  name String
+  type CommissionRuleType
+
+  // Scope — leave null to apply broadly; more specific rules should be
+  // given higher priority so they win over general ones.
+  affiliateType AffiliateType?
+  licenseLevel  LicenseLevel?
+  termType      TermType?
+  tierId        String?
+  tier          AffiliateTier? @relation(fields: [tierId], references: [id])
+
+  fixedAmount Decimal? @db.Decimal(10, 2)
+  percentage  Decimal? @db.Decimal(5, 2) // e.g. 10.00 = 10%
+
+  active   Boolean @default(true)
+  priority Int     @default(0) // higher wins on conflict
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  commissions AffiliateCommission[]
+
+  @@map("commission_rules")
+}
+
+model AffiliateCommission {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+
+  referralId String
+  referral   AffiliateReferral @relation(fields: [referralId], references: [id])
+
+  commissionRuleId String?
+  commissionRule   CommissionRule? @relation(fields: [commissionRuleId], references: [id])
+
+  amount Decimal           @db.Decimal(10, 2)
+  status CommissionStatus  @default(pending)
+
+  holdUntil  DateTime? // configurable holding period before it can be approved
+  approvedAt DateTime?
+  paidAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  adjustments AffiliateCommissionAdjustment[]
+  payoutItems AffiliatePayoutItem[]
+
+  @@index([affiliateId, status])
+  @@map("affiliate_commissions")
+}
+
+model AffiliateCommissionAdjustment {
+  id           String  @id @default(cuid())
+  commissionId String
+  commission   AffiliateCommission @relation(fields: [commissionId], references: [id])
+
+  amount Decimal        @db.Decimal(10, 2) // can be negative (reversal) or positive (bonus adjustment)
+  type   AdjustmentType
+  reason String
+
+  // Null adminId = system-initiated (e.g. an automatic reversal triggered
+  // by a refund/chargeback webhook from the main NMSA site) rather than a
+  // manual admin action.
+  adminId String?
+  admin   Admin?  @relation(fields: [adminId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("affiliate_commission_adjustments")
+}
+
+// ----------------------------------------------------------------------------
+// TIERS & BONUSES
+// ----------------------------------------------------------------------------
+
+model AffiliateTier {
+  id                     String  @id @default(cuid())
+  name                   String  @unique // NEW AFFILIATE, ACTIVE AFFILIATE, GROWTH AFFILIATE, PARTNER AFFILIATE
+  minCompletedReferrals  Int
+  maxCompletedReferrals  Int? // null = no upper bound
+  sortOrder              Int     @default(0)
+  description            String?
+
+  affiliates      Affiliate[]
+  commissionRules CommissionRule[]
+
+  @@map("affiliate_tiers")
+}
+
+model AffiliateBonusRule {
+  id             String   @id @default(cuid())
+  name           String
+  thresholdCount Int // completed referrals in the calendar month
+  bonusAmount    Decimal  @db.Decimal(10, 2)
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  bonusesAwarded AffiliateBonus[]
+
+  @@map("affiliate_bonus_rules")
+}
+
+model AffiliateBonus {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+
+  bonusRuleId String?
+  bonusRule   AffiliateBonusRule? @relation(fields: [bonusRuleId], references: [id])
+
+  bonusMonth String // "YYYY-MM"
+  threshold  Int
+  bonusAmount Decimal     @db.Decimal(10, 2)
+  status      BonusStatus @default(pending)
+  dateAwarded DateTime?
+
+  createdAt DateTime @default(now())
+
+  payoutItems AffiliatePayoutItem[]
+
+  @@unique([affiliateId, bonusMonth, bonusRuleId])
+  @@map("affiliate_bonuses")
+}
+
+// ----------------------------------------------------------------------------
+// PAYOUTS
+// ----------------------------------------------------------------------------
+
+model AffiliatePayout {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+
+  amount             Decimal      @db.Decimal(10, 2)
+  status             PayoutStatus @default(balance_owed)
+  paymentMethod      String       @default("Cash App")
+  cashAppHandleUsed  String? // snapshot of the handle AT THE TIME of payout — never changes retroactively
+  paymentDate        DateTime?
+  paymentReference   String?
+  adminNotes         String?
+
+  createdByAdminId String?
+  createdByAdmin   Admin?  @relation(fields: [createdByAdminId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items AffiliatePayoutItem[]
+
+  @@index([affiliateId, status])
+  @@map("affiliate_payouts")
+}
+
+// A payout line item is EITHER a commission OR a monthly bonus being paid
+// out — never both — so commissionId/bonusId are each optional but exactly
+// one must be set (enforced in application code, checked in lib/payouts.ts).
+model AffiliatePayoutItem {
+  id       String          @id @default(cuid())
+  payoutId String
+  payout   AffiliatePayout @relation(fields: [payoutId], references: [id], onDelete: Cascade)
+
+  commissionId String?
+  commission   AffiliateCommission? @relation(fields: [commissionId], references: [id])
+
+  bonusId String?
+  bonus   AffiliateBonus? @relation(fields: [bonusId], references: [id])
+
+  amount Decimal @db.Decimal(10, 2)
+
+  @@unique([payoutId, commissionId])
+  @@unique([payoutId, bonusId])
+  @@map("affiliate_payout_items")
+}
+
+// ----------------------------------------------------------------------------
+// EDUCATOR CREDITS (separate from cash commissions — educators earn BOTH)
+// ----------------------------------------------------------------------------
+
+model EducatorCreditRate {
+  id           String       @id @default(cuid())
+  licenseLevel LicenseLevel
+  termType     TermType
+  creditAmount Decimal      @db.Decimal(10, 2)
+  active       Boolean      @default(true)
+
+  @@unique([licenseLevel, termType])
+  @@map("educator_credit_rates")
+}
+
+model EducatorCreditLedgerEntry {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+
+  referralId String?
+  referral   AffiliateReferral? @relation(fields: [referralId], references: [id])
+
+  licenseLevel LicenseLevel
+  termType     TermType
+  amount       Decimal      @db.Decimal(10, 2)
+  status       CommissionStatus @default(pending) // reuses pending/approved/available/paid/reversed
+
+  createdAt DateTime @default(now())
+
+  @@map("educator_credit_ledger")
+}
+
+// ----------------------------------------------------------------------------
+// EMAILS
+// ----------------------------------------------------------------------------
+
+model AffiliateEmailEvent {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+
+  type    EmailType
+  subject String
+  status  EmailStatus @default(stubbed)
+  payload Json?
+  error   String?
+
+  sentAt DateTime @default(now())
+
+  @@index([affiliateId, type])
+  @@map("affiliate_email_events")
+}
+
+// ----------------------------------------------------------------------------
+// MARKETING RESOURCES
+// ----------------------------------------------------------------------------
+
+model AffiliateMarketingResource {
+  id    String                @id @default(cuid())
+  title String
+  type  MarketingResourceType
+  licenseLevel LicenseLevel?
+
+  headline    String?
+  subheadline String?
+  bodyMarkdown String?
+  previewUrl  String?
+  downloadUrl String?
+  ctaLabel    String?
+  ctaUrlTemplate String? // e.g. "{{appUrl}}/go?ref={{code}}" — referral code interpolated per-affiliate
+
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("affiliate_marketing_resources")
+}
+
+// ----------------------------------------------------------------------------
+// TERMS, CASH APP HISTORY, AUDIT LOG
+// ----------------------------------------------------------------------------
+
+model AffiliateTermsAcceptance {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+
+  termsVersion String
+  acceptedAt   DateTime @default(now())
+  ipAddress    String?
+
+  @@map("affiliate_terms_acceptance")
+}
+
+model AffiliateCashAppHistory {
+  id          String    @id @default(cuid())
+  affiliateId String
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id])
+
+  oldHandle String?
+  newHandle String
+  changedAt DateTime @default(now())
+
+  @@map("affiliate_cash_app_history")
+}
+
+model AffiliateAuditLog {
+  id String @id @default(cuid())
+
+  adminId String?
+  admin   Admin?  @relation(fields: [adminId], references: [id])
+
+  affiliateId String?
+  affiliate   Affiliate? @relation("AuditAffiliate", fields: [affiliateId], references: [id])
+
+  action        String
+  previousValue Json?
+  newValue      Json?
+  reason        String?
+
+  createdAt DateTime @default(now())
+
+  @@index([affiliateId])
+  @@index([action])
+  @@map("affiliate_audit_logs")
+}
+
+// ----------------------------------------------------------------------------
+// PROGRAM SETTINGS (singleton row — admin-configurable)
+// ----------------------------------------------------------------------------
+
+model ProgramSettings {
+  id Int @id @default(1)
+
+  payoutMinimum           Decimal @default(200.00) @db.Decimal(10, 2)
+  payoutDayOfMonth        Int     @default(1)
+  commissionHoldingDays   Int     @default(14)
+  trainingVersion         String  @default("1.0")
+  affiliateTermsVersion   String  @default("1.0")
+
+  updatedAt DateTime @updatedAt
+
+  @@map("program_settings")
+}
