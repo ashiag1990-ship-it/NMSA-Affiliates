@@ -66,11 +66,7 @@ export default async function MarketingResourcesPage() {
                 )}
                 {bodyText && <CopyButton value={bodyText} label={dict.common.copyText} />}
                 {r.downloadUrl && (
-                  
-                    href={r.downloadUrl}
-                    download
-                    className="rounded-xl border-2 border-nmsa-navy text-nmsa-navy px-3 py-1.5 text-sm font-bold hover:bg-nmsa-navy hover:text-white transition"
-                  >
+                  <a href={r.downloadUrl} download className="rounded-xl border-2 border-nmsa-navy text-nmsa-navy px-3 py-1.5 text-sm font-bold hover:bg-nmsa-navy hover:text-white transition">
                     {dict.common.download}
                   </a>
                 )}
