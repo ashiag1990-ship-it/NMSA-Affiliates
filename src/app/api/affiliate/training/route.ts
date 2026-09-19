@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
-  const { slide, action } = parsed.data;
+  const { slide, action, contractAccepted } = parsed.data;
   const affiliateId = session.user.id;
 
   const training = await prisma.affiliateTraining.findUnique({ where: { affiliateId } });
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
       where: { affiliateId },
       data: {
         slidesCompleted,
-        currentSlide: Math.min(slide + 1, 4),
+        currentSlide: Math.min(slide + 1, 5),
       },
     });
     return NextResponse.json({ training: updated });
@@ -51,8 +51,14 @@ export async function POST(req: NextRequest) {
 
   if (action === "finish") {
     const slidesCompleted = Array.from(new Set([...training.slidesCompleted, slide])).sort();
-    if (slidesCompleted.length < 4) {
-      return NextResponse.json({ error: "All 4 training slides must be completed first." }, { status: 400 });
+    if (slidesCompleted.length < 5) {
+      return NextResponse.json({ error: "All 5 training slides must be completed first." }, { status: 400 });
+    }
+    if (contractAccepted !== true) {
+      return NextResponse.json(
+        { error: "You must agree to the NMSA Affiliate Marketing & Content Guidelines to finish training." },
+        { status: 400 }
+      );
     }
 
     const settings = await getProgramSettings();
@@ -84,6 +90,16 @@ export async function POST(req: NextRequest) {
       if (affiliate.status === "pending") {
         await tx.affiliate.update({ where: { id: affiliateId }, data: { status: "active" } });
       }
+
+      // Record the affiliate's explicit agreement to the Marketing & Content
+      // Guidelines shown on the final training slide — a distinct, versioned
+      // acceptance from the general terms accepted at signup.
+      await tx.affiliateTermsAcceptance.create({
+        data: {
+          affiliateId,
+          termsVersion: `marketing-contract-${settings.trainingVersion}`,
+        },
+      });
 
       return { training: updatedTraining, link };
     });

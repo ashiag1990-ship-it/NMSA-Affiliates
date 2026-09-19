@@ -61,8 +61,12 @@ export const cashAppUpdateSchema = z
   });
 
 export const trainingProgressSchema = z.object({
-  slide: z.number().int().min(1).max(4),
+  slide: z.number().int().min(1).max(5),
   action: z.enum(["start", "complete_slide", "finish"]),
+  // Required (and must be true) when action === "finish": affirms the affiliate
+  // has read and agreed to the Marketing & Content Guidelines shown on the
+  // final training slide before their referral link/code is activated.
+  contractAccepted: z.boolean().optional(),
 });
 
 export const commissionRuleSchema = z.object({

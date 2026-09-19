@@ -168,13 +168,15 @@ const en = {
   },
 
   training: {
-    slideOf: "Slide {{n}} of 4",
+    slideOf: "Slide {{n}} of 5",
     continue: "Continue",
     finishTraining: "Finish Training",
     pleaseWait: "Please wait…",
     congratsTitle: "CONGRATULATIONS!",
     congratsBody: "You're ready to start referring professionals to NMSA.",
     getReferralLink: "Get My Referral Link",
+    yourCodeLabel: "Your Referral Code",
+    yourCodeNote: "This code and link are automatically attached to every marketing resource you copy or download from the Marketing Resources tab.",
     slide1: {
       eyebrow: "Slide 1",
       title: "WHO WE ARE — National Med Spa Association",
@@ -218,11 +220,36 @@ const en = {
         "Brow Threading", "Lash Extensions", "Basic Tanning", "Thermal Auricular Therapy",
       ],
       levelIITitle: "LEVEL II",
-      levelIIBody:
-        "The NMSA Level II program — for professionals advancing beyond entry-level services toward more specialized non-invasive aesthetic offerings. See the official NMSA Level II program description for the full curriculum and requirements.",
+      levelIIBody: "Master Level Professionals who offer basic services or trainings which includes but not limited to:",
+      levelIIServices: [
+        "Body Sculpting", "LED Light Therapy", "Cavitation", "Low Level Laser Lipo", "Low Level RF",
+        "Body Wrapping", "Vacuum Therapy Enhancements", "Wood Therapy", "Ice Sculpting", "Infrared Therapy",
+        "Vaginal Steaming", "Lymphatic Stimulation", "Brow Lamination", "Brow Threading", "Lash Extensions",
+        "Basic Tanning", "Thermal Auricular Therapy", "Mobile Oral Care", "Em-Sculpting", "Cool Sculpting",
+        "Cryotherapy", "Cryopen", "Vaginal & Facial HIFU", "Hyaluronic Pen", "Fat Dissolvers", "Body Piercing",
+        "Areola Micropigmentation", "PMU", "Microblading", "Scalp Pigmentation", "Carbon Laser Facial",
+        "Plasma Fibroblast", "Advanced Spray Tanning", "Chemical Peels", "Hair Removal",
+      ],
       levelIIITitle: "LEVEL III",
       levelIIIBody:
-        "The NMSA Level III program relates to advanced/injectable services. Potential prospects may include appropriately qualified healthcare professionals such as Nurses, Nurse Practitioners, Physicians, Physician Assistants, and other qualified professionals where permitted.",
+        "The licensing process for Level III follows the same structured application process; however, applicants must meet additional medical-related qualifications.",
+      levelIIIQualifyLabel: "To qualify, applicants must hold a valid, unexpired certification or license such as:",
+      levelIIIQualifyCredentials: ["CCMA", "CMA", "Phlebotomy Certification", "Or a higher-level medical credential (RN, LPN, MD, etc.)"],
+      levelIIIServicesLabel: "Services Included",
+      levelIIIServicesBody: "Level III licensing allows practitioners to perform advanced and medical-adjacent aesthetic services, including:",
+      levelIIIServices: [
+        "Cosmetic Injections (Botox, Neurotoxins, Mesotherapy)",
+        "Dermal Fillers, Lip Fillers, Enhancements",
+        "Fat Dissolvers",
+        "IV Hydration (IV Drips, Vitamin Boosts, Energy Support)",
+        "Wellness-based treatments (Immunity, Inflammatory Support, Weight Management)",
+      ],
+      levelIIIMedDirectorLabel: "Medical Director Requirement",
+      levelIIIMedDirectorBody: "A medical director is not always required for Level III licensing.",
+      levelIIIMedDirectorRequiredWhen: "A medical director is only required if the practitioner is administering:",
+      levelIIIMedDirectorTriggers: ["Medications", "Anesthesia", "Prescription-based treatments"],
+      levelIIIMedDirectorNote:
+        "Practitioners may perform certain advanced aesthetic services using non-prescription products that do not legally require physician oversight, depending on product type and supplier requirements. If services involve regulated medical treatments or prescription-based injectables, a licensed medical provider or medical director may be required.",
       neverTellTitle: "Never tell an affiliate:",
       neverTellQuote: "\"You can perform injections because you are a nurse.\"",
       insteadTitle: "Instead say:",
@@ -244,6 +271,23 @@ const en = {
       minimumPayoutLabel: "Minimum Payout",
       rollover:
         "If your approved balance is under $200, it automatically rolls over to the following month — no balance is ever reset to zero.",
+    },
+    slide5: {
+      eyebrow: "Slide 5",
+      title: "APPROVED MARKETING & YOUR CONTRACT",
+      intro: "Before you get your referral code, review NMSA's marketing rules below.",
+      imageAlt: "NMSA approved marketing graphic",
+      imageCaption: "This is the only image currently approved for NMSA affiliate marketing use.",
+      rulesTitle: "Marketing rules",
+      rules: [
+        "Use the Marketing Resources tab in your Affiliate Portal to copy pre-approved messaging to send to prospects.",
+        "You are not allowed to create your own marketing materials, imagery, or campaigns without NMSA's approval.",
+        "The image above is the only image currently approved for marketing NMSA — download it from here or from the Marketing Resources tab.",
+      ],
+      bestPracticeLabel: "Best practice:",
+      bestPractice: "Only use the information, copy, and images provided on the Affiliate Portal.",
+      contractLabel:
+        "I have read and agree to the NMSA Affiliate Marketing & Content Guidelines above, and I will not create or distribute unapproved marketing materials on NMSA's behalf.",
     },
   },
 
@@ -718,7 +762,7 @@ const en = {
     trainingReminder: {
       subject: "COMPLETE YOUR NMSA AFFILIATE TRAINING",
       heading: "Finish your affiliate training",
-      body: "Your referral tools aren't active yet — complete the short 4-slide NMSA Affiliate Training to get your referral link and code and start earning.",
+      body: "Your referral tools aren't active yet — complete the short 5-slide NMSA Affiliate Training to get your referral link and code and start earning.",
     },
   },
 };

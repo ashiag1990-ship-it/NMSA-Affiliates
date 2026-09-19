@@ -170,13 +170,15 @@ const es: Dictionary = {
   },
 
   training: {
-    slideOf: "Diapositiva {{n}} de 4",
+    slideOf: "Diapositiva {{n}} de 5",
     continue: "Continuar",
     finishTraining: "Finalizar Capacitación",
     pleaseWait: "Por favor espera…",
     congratsTitle: "¡FELICITACIONES!",
     congratsBody: "Estás listo para comenzar a referir profesionales a NMSA.",
     getReferralLink: "Obtener Mi Enlace de Referido",
+    yourCodeLabel: "Tu Código de Referido",
+    yourCodeNote: "Este código y enlace se adjuntan automáticamente a cada recurso de marketing que copies o descargues desde la pestaña de Recursos de Marketing.",
     slide1: {
       eyebrow: "Diapositiva 1",
       title: "QUIÉNES SOMOS — National Med Spa Association",
@@ -220,11 +222,36 @@ const es: Dictionary = {
         "Threading de Cejas", "Extensiones de Pestañas", "Bronceado Básico", "Terapia Termo Auricular",
       ],
       levelIITitle: "NIVEL II",
-      levelIIBody:
-        "El programa NMSA Nivel II — para profesionales que avanzan más allá de los servicios de nivel inicial hacia ofertas de estética no invasivas más especializadas. Consulta la descripción oficial del programa NMSA Nivel II para conocer el plan de estudios y los requisitos completos.",
+      levelIIBody: "Profesionales de Nivel Maestro que ofrecen servicios o capacitaciones básicas, incluyendo pero no limitado a:",
+      levelIIServices: [
+        "Escultura Corporal", "Terapia de Luz LED", "Cavitación", "Lipo Láser de Baja Intensidad", "RF de Baja Intensidad",
+        "Envolturas Corporales", "Mejoras de Terapia de Vacío", "Terapia de Madera", "Escultura de Hielo", "Terapia Infrarroja",
+        "Vaporización Vaginal", "Estimulación Linfática", "Laminado de Cejas", "Threading de Cejas", "Extensiones de Pestañas",
+        "Bronceado Básico", "Terapia Termo Auricular", "Cuidado Oral Móvil", "Em-Sculpting", "Cool Sculpting",
+        "Crioterapia", "Cryopen", "HIFU Vaginal y Facial", "Pluma de Ácido Hialurónico", "Disolventes de Grasa", "Perforación Corporal",
+        "Micropigmentación de Areola", "PMU", "Microblading", "Pigmentación de Cuero Cabelludo", "Facial con Láser de Carbono",
+        "Plasma Fibroblast", "Bronceado en Spray Avanzado", "Peelings Químicos", "Depilación",
+      ],
       levelIIITitle: "NIVEL III",
       levelIIIBody:
-        "El programa NMSA Nivel III se relaciona con servicios avanzados/inyectables. Los prospectos potenciales pueden incluir profesionales de la salud debidamente calificados, como enfermeras/os, enfermeras/os practicantes, médicos, asistentes médicos y otros profesionales calificados donde esté permitido.",
+        "El proceso de licenciamiento para el Nivel III sigue el mismo proceso de solicitud estructurado; sin embargo, los solicitantes deben cumplir con calificaciones médicas adicionales.",
+      levelIIIQualifyLabel: "Para calificar, los solicitantes deben tener una certificación o licencia válida y vigente, tales como:",
+      levelIIIQualifyCredentials: ["CCMA", "CMA", "Certificación de Flebotomía", "O una credencial médica de nivel superior (RN, LPN, MD, etc.)"],
+      levelIIIServicesLabel: "Servicios Incluidos",
+      levelIIIServicesBody: "La licencia de Nivel III permite a los profesionales realizar servicios estéticos avanzados y médico-adyacentes, incluyendo:",
+      levelIIIServices: [
+        "Inyecciones Cosméticas (Botox, Neurotoxinas, Mesoterapia)",
+        "Rellenos Dérmicos, Rellenos de Labios, Mejoras",
+        "Disolventes de Grasa",
+        "Hidratación IV (Sueros IV, Refuerzos de Vitaminas, Apoyo Energético)",
+        "Tratamientos de bienestar (Inmunidad, Apoyo Antiinflamatorio, Control de Peso)",
+      ],
+      levelIIIMedDirectorLabel: "Requisito de Director Médico",
+      levelIIIMedDirectorBody: "No siempre se requiere un director médico para la licencia de Nivel III.",
+      levelIIIMedDirectorRequiredWhen: "Un director médico solo se requiere si el profesional administra:",
+      levelIIIMedDirectorTriggers: ["Medicamentos", "Anestesia", "Tratamientos con receta médica"],
+      levelIIIMedDirectorNote:
+        "Los profesionales pueden realizar ciertos servicios estéticos avanzados utilizando productos sin receta que no requieren legalmente supervisión médica, dependiendo del tipo de producto y los requisitos del proveedor. Si los servicios involucran tratamientos médicos regulados o inyectables con receta, puede requerirse un proveedor médico licenciado o un director médico.",
       neverTellTitle: "Nunca le digas a un afiliado:",
       neverTellQuote: "\"Puedes aplicar inyecciones porque eres enfermera.\"",
       insteadTitle: "En su lugar, di:",
@@ -246,6 +273,23 @@ const es: Dictionary = {
       minimumPayoutLabel: "Pago Mínimo",
       rollover:
         "Si tu saldo aprobado es menor a $200, se transfiere automáticamente al mes siguiente — ningún saldo se reinicia nunca a cero.",
+    },
+    slide5: {
+      eyebrow: "Diapositiva 5",
+      title: "MARKETING APROBADO Y TU CONTRATO",
+      intro: "Antes de obtener tu código de referido, revisa las reglas de marketing de NMSA a continuación.",
+      imageAlt: "Gráfico de marketing aprobado por NMSA",
+      imageCaption: "Esta es la única imagen actualmente aprobada para el marketing de afiliados de NMSA.",
+      rulesTitle: "Reglas de marketing",
+      rules: [
+        "Usa la pestaña de Recursos de Marketing en tu Portal de Afiliado para copiar mensajes preaprobados para enviar a los prospectos.",
+        "No tienes permitido crear tus propios materiales de marketing, imágenes o campañas sin la aprobación de NMSA.",
+        "La imagen de arriba es la única imagen actualmente aprobada para promocionar NMSA — descárgala aquí o desde la pestaña de Recursos de Marketing.",
+      ],
+      bestPracticeLabel: "Mejor práctica:",
+      bestPractice: "Usa únicamente la información, el texto y las imágenes proporcionados en el Portal de Afiliado.",
+      contractLabel:
+        "He leído y acepto las Pautas de Marketing y Contenido de Afiliados de NMSA anteriores, y no crearé ni distribuiré materiales de marketing no aprobados en nombre de NMSA.",
     },
   },
 
@@ -720,7 +764,7 @@ const es: Dictionary = {
     trainingReminder: {
       subject: "COMPLETA TU CAPACITACIÓN DE AFILIADO DE NMSA",
       heading: "Termina tu capacitación de afiliado",
-      body: "Tus herramientas de referido aún no están activas — completa la breve capacitación de afiliado de NMSA de 4 diapositivas para obtener tu enlace y código de referido y comenzar a ganar.",
+      body: "Tus herramientas de referido aún no están activas — completa la breve capacitación de afiliado de NMSA de 5 diapositivas para obtener tu enlace y código de referido y comenzar a ganar.",
     },
   },
 };

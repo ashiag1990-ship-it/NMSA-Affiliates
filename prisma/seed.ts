@@ -107,7 +107,7 @@ async function main() {
       headline: "Discover NMSA",
       subheadline: "Professional licensing, aesthetic education & accreditation",
       bodyMarkdown:
-        "NMSA provides professional licensing, aesthetic education, accreditation, professional development, compliance resources, and industry networking for aesthetic professionals nationwide.",
+        "NMSA provides professional licensing, aesthetic education, accreditation, professional development, compliance resources, and industry networking for aesthetic professionals nationwide. Learn more or apply here: {{referralUrl}}",
       ctaLabel: "Learn More",
       ctaUrlTemplate: "{{appUrl}}/r/{{code}}",
     },
@@ -118,7 +118,7 @@ async function main() {
       headline: "GET YOUR LEVEL I LICENSE",
       subheadline: "FOR ENTRY-LEVEL AESTHETIC PROFESSIONALS",
       bodyMarkdown:
-        "Services include but are not limited to: Body Sculpting, LED Light Therapy, Cavitation, Low Level Laser Lipo, Low Level RF, Body Wrapping, Vacuum Therapy Enhancements, Wood Therapy, Ice Sculpting, Infrared Therapy, Vaginal Steaming, Lymphatic Stimulation, Brow Lamination, Brow Threading, Lash Extensions, Basic Tanning, and Thermal Auricular Therapy.",
+        "Services include but are not limited to: Body Sculpting, LED Light Therapy, Cavitation, Low Level Laser Lipo, Low Level RF, Body Wrapping, Vacuum Therapy Enhancements, Wood Therapy, Ice Sculpting, Infrared Therapy, Vaginal Steaming, Lymphatic Stimulation, Brow Lamination, Brow Threading, Lash Extensions, Basic Tanning, and Thermal Auricular Therapy. Get started here: {{referralUrl}}",
       ctaLabel: "GET STARTED TODAY",
       ctaUrlTemplate: "{{appUrl}}/r/{{code}}",
     },
@@ -127,8 +127,9 @@ async function main() {
       type: "marketing_post" as const,
       licenseLevel: "II" as const,
       headline: "GET YOUR LEVEL II LICENSE",
-      subheadline: "ADVANCE YOUR NON-INVASIVE AESTHETIC SKILLS",
-      bodyMarkdown: "Ask your NMSA affiliate about the Level II program for professionals ready to advance beyond entry-level services.",
+      subheadline: "FOR MASTER LEVEL AESTHETIC PROFESSIONALS",
+      bodyMarkdown:
+        "Master Level Professionals who offer basic services or trainings including but not limited to: Body Sculpting, LED Light Therapy, Cavitation, Low Level Laser Lipo, Low Level RF, Body Wrapping, Vacuum Therapy Enhancements, Wood Therapy, Ice Sculpting, Infrared Therapy, Vaginal Steaming, Lymphatic Stimulation, Brow Lamination, Brow Threading, Lash Extensions, Basic Tanning, Thermal Auricular Therapy, Mobile Oral Care, Em-Sculpting, Cool Sculpting, Cryotherapy, Cryopen, Vaginal & Facial HIFU, Hyaluronic Pen, Fat Dissolvers, Body Piercing, Areola Micropigmentation, PMU, Microblading, Scalp Pigmentation, Carbon Laser Facial, Plasma Fibroblast, Advanced Spray Tanning, Chemical Peels, and Hair Removal. Get started here: {{referralUrl}}",
       ctaLabel: "GET STARTED TODAY",
       ctaUrlTemplate: "{{appUrl}}/r/{{code}}",
     },
@@ -137,9 +138,9 @@ async function main() {
       type: "marketing_post" as const,
       licenseLevel: "III" as const,
       headline: "GET YOUR LEVEL III LICENSE",
-      subheadline: "ADVANCED & INJECTABLE SERVICES",
+      subheadline: "ADVANCED & MEDICAL-ADJACENT AESTHETIC SERVICES",
       bodyMarkdown:
-        "For appropriately qualified healthcare professionals exploring advanced and injectable services. Eligibility and authorization depend on the applicant's qualifications, applicable requirements, and scope of practice.",
+        "For appropriately qualified applicants holding a valid, unexpired certification or license such as CCMA, CMA, Phlebotomy Certification, or a higher-level medical credential (RN, LPN, MD, etc.). Level III covers advanced and medical-adjacent services including Cosmetic Injections (Botox, Neurotoxins, Mesotherapy), Dermal Fillers, Fat Dissolvers, IV Hydration, and Wellness-based treatments. A medical director is only required when administering medications, anesthesia, or prescription-based treatments. Eligibility and authorization depend on the applicant's qualifications, applicable requirements, and scope of practice. Get started here: {{referralUrl}}",
       ctaLabel: "GET STARTED TODAY",
       ctaUrlTemplate: "{{appUrl}}/r/{{code}}",
     },
@@ -147,7 +148,17 @@ async function main() {
       title: "Approved Marketing Language",
       type: "approved_language" as const,
       bodyMarkdown:
-        "Eligibility, licensing requirements, and scope of practice may vary. NMSA determines applicant eligibility. Never guarantee licensing approval, eligibility, or legal authority to perform a procedure.",
+        "Eligibility, licensing requirements, and scope of practice may vary. NMSA determines applicant eligibility. Never guarantee licensing approval, eligibility, or legal authority to perform a procedure. Share your link with prospects: {{referralUrl}}",
+    },
+    {
+      title: "Official NMSA Marketing Graphic",
+      type: "social_graphic" as const,
+      headline: "The only image currently approved for affiliate marketing",
+      subheadline: "Download and share this graphic as-is — do not edit, crop, or create your own version.",
+      bodyMarkdown:
+        "This is the only image currently approved by NMSA for affiliate marketing use. Do not create your own marketing materials, imagery, or campaigns without NMSA's approval — best practice is to only use what's provided here on the Affiliate Portal. Share it with your referral link: {{referralUrl}}",
+      downloadUrl: "/marketing/nmsa-approved-graphic.jpg",
+      previewUrl: "/marketing/nmsa-approved-graphic.jpg",
     },
     {
       title: "Affiliate FAQ",
@@ -160,6 +171,10 @@ async function main() {
     const existing = await prisma.affiliateMarketingResource.findFirst({ where: { title: r.title } });
     if (!existing) {
       await prisma.affiliateMarketingResource.create({ data: { ...r, active: true } as any });
+    } else {
+      // Re-running the seed (e.g. after a content update) keeps existing
+      // resources in sync rather than silently leaving stale copy in place.
+      await prisma.affiliateMarketingResource.update({ where: { id: existing.id }, data: { ...r } as any });
     }
   }
 

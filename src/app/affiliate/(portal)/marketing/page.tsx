@@ -32,9 +32,17 @@ export default async function MarketingResourcesPage() {
         {resources.map((r) => {
           const ctaUrl = link
             ? (r.ctaUrlTemplate || "{{appUrl}}/r/{{code}}")
-                .replace("{{appUrl}}", appUrl)
-                .replace("{{code}}", link.code)
+                .replaceAll("{{appUrl}}", appUrl)
+                .replaceAll("{{code}}", link.code)
             : undefined;
+
+          // Every affiliate's referral code/link is baked into the copy text
+          // automatically — an affiliate never has to add it themselves, and
+          // never accidentally shares a link without it.
+          const bodyText =
+            r.bodyMarkdown && link
+              ? r.bodyMarkdown.replaceAll("{{referralUrl}}", ctaUrl || "").replaceAll("{{code}}", link.code)
+              : r.bodyMarkdown;
 
           return (
             <Card key={r.id}>
@@ -47,8 +55,8 @@ export default async function MarketingResourcesPage() {
               </CardHeader>
               {r.headline && <p className="font-bold text-nmsa-navy">{r.headline}</p>}
               {r.subheadline && <p className="text-sm text-nmsa-gray-dark mt-1">{r.subheadline}</p>}
-              {r.bodyMarkdown && (
-                <p className="text-sm text-nmsa-navy/80 mt-3 whitespace-pre-line">{r.bodyMarkdown}</p>
+              {bodyText && (
+                <p className="text-sm text-nmsa-navy/80 mt-3 whitespace-pre-line">{bodyText}</p>
               )}
               <div className="flex flex-wrap gap-2 mt-4">
                 {ctaUrl && (
@@ -57,10 +65,11 @@ export default async function MarketingResourcesPage() {
                     <ShareButton value={ctaUrl} title={r.title} />
                   </>
                 )}
-                {r.bodyMarkdown && <CopyButton value={r.bodyMarkdown} label={dict.common.copyText} />}
+                {bodyText && <CopyButton value={bodyText} label={dict.common.copyText} />}
                 {r.downloadUrl && (
                   <a
                     href={r.downloadUrl}
+                    download
                     className="rounded-xl border-2 border-nmsa-navy text-nmsa-navy px-3 py-1.5 text-sm font-bold hover:bg-nmsa-navy hover:text-white transition"
                   >
                     {dict.common.download}
