@@ -65,7 +65,7 @@ export function AdminCharts({
             <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
             <XAxis dataKey="month" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} />
-            <Tooltip formatter={(v: number) => `$${v.toFixed(2)}`} />
+            <Tooltip formatter={(v) => `$${Number(v ?? 0).toFixed(2)}`} />
             <Bar dataKey="value" name={c.commissions} fill={NAVY} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
@@ -89,7 +89,7 @@ export function AdminCharts({
             <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
             <XAxis dataKey="month" tick={{ fontSize: 11 }} />
             <YAxis tick={{ fontSize: 11 }} />
-            <Tooltip formatter={(v: number) => `$${v.toFixed(2)}`} />
+            <Tooltip formatter={(v) => `$${Number(v ?? 0).toFixed(2)}`} />
             <Bar dataKey="value" name={c.paidOut} fill={NAVY} radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
